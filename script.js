@@ -1,10 +1,10 @@
-var cardDeck = []
+var cardDeck = [];
 var gameState = "waiting input";
 var playerCards = [];
 var computerCards = [];
 
 var makeDeck = function(){
-  var suit = ["♦️", "♣️", "❤️", "♠️"];
+  var suit = ["🔶", "♣️", "❤️", "♠️"];
   for(i = 0; i < suit.length; i++){
     currentsuit = suit[i];
     for(j = 1; j <= 13; j++){
@@ -76,20 +76,25 @@ var showInitialCards = function(){
   return "Player hand: " + playerCards[0].Name + " of " + playerCards[0].suit + " and " + playerCards[1].Name + " of " + playerCards[1].suit + "<br> Computer hand: " + computerCards[0].Name + " of " + computerCards[0].suit + " and " + computerCards[1].Name + " of " +computerCards[1].suit + "<br> Please choose to hit or stand. ";
 }
 
-// var showUpdatedCards = function(){
-//   for (i = 0; i < playerCards.length; i++){
-//     gameState = "choose"
-//     playerCards[playerCards.length].Name + playerCards[playerCards.length].suit;
-//   }
-//   return "Player current card is: " 
-// }
+//show player hand after they had selected hit
+var showUpdatedCards = function(){
+  var arrayPlayerHand = [];
+  for (i = 0; i < playerCards.length; i++){
+    var output = playerCards[i].Name + " of " + playerCards[i].suit;
+    arrayPlayerHand.push(output);
+    console.log("player hand: ", arrayPlayerHand);
+  }
+  gameState = "choose"
+  return arrayPlayerHand;
+}
 
 var chooseCards = function(input){
-  var output =  "Please only choose hit or stand";
+  var currentHand = showUpdatedCards();
+  var output =  "Please only choose hit or stand. " + "<br>Your hand is: " + currentHand;
   if (input == "hit"){
     newCardDrawn = cardDeck.pop();
     playerCards.push(newCardDrawn);
-    return "You have drawn " + newCardDrawn.Name + " of " + newCardDrawn.suit;
+    return "You have drawn " + newCardDrawn.Name + " of " + newCardDrawn.suit + ". <br>Your current hand is: " + currentHand;
   } else if (input == "stand"){
     gameState = "output winner";
     output = "Calculating scores.... click submit to reveal the winner."
@@ -97,8 +102,30 @@ var chooseCards = function(input){
  return output;
 }
 
+var outputWinner = function(){
+  var playerSumOfCards = 0;
+  var computerSumOfCards = 0;
+  for (i = 0; i < playerCards.length; i++){
+    playerSumOfCards += playerCards[i].points;
+  }
+
+  for (i = 0; i < computerCards.length; i++){
+    computerSumOfCards += computerCards[i].points;
+  }
+
+  if (playerSumOfCards > computerSumOfCards){
+    return "Player Score: " + playerSumOfCards + "<br> Computer score: " + computerSumOfCards + "<br> Player wins!";
+  } else if (playerSumOfCards < computerSumOfCards){
+    return "Player Score: " + playerSumOfCards + "<br> Computer score: " + computerSumOfCards + "<br> Computer wins!"
+  } else{
+    return "Its a tie!"
+  }
+}
+
 var main = function (input) {
   console.log(gameState);
+  console.log("Player cards: ", playerCards);
+  console.log("Computer cards: ", computerCards);
   if (gameState == "waiting input"){
     gameState = "choose"
     return showInitialCards();
@@ -109,7 +136,7 @@ var main = function (input) {
   }
 
   if (gameState == "output winner"){
-    return "the winner is...."
+    return "Player score is: " + outputWinner();
   }
   return myOutputValue;
 };
