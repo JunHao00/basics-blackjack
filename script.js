@@ -90,26 +90,41 @@ var showUpdatedCards = function(){
   gameState = "choose"
   return arrayPlayerHand;
 }
+//computer to choose hit or stand and displays array of cards
+var computerChooseCards = function(){
+  var computerSumOfCards = 0;
+  for (i = 0; i < computerCards.length; i++){
+    for (j = 0; j < computerCards.length; j++){
+      computerSumOfCards += computerCards[j].points;
+    }
+    if (computerSumOfCards < 14){
+      computerCards.push(cardDeck.pop());
+    }
+  }
+  
+  var computerHand = [];
+  for (i = 0; i < computerCards.length; i++){
+    var output = computerCards[i].Name + " of " + computerCards[i].suit;
+    computerHand.push(output);
+  }
+  return computerHand;
+}
 
 //make player choose hit or stand
 var playerChooseCards = function(input){
   var currentHand = showUpdatedCards();
+  var computerUpdatedCards = computerChooseCards();
   var output =  "Please only choose hit or stand. " + "<br>Your hand is: " + currentHand;
   if (input == "hit"){
     newCardDrawn = cardDeck.pop();
     playerCards.push(newCardDrawn);
-    return "You have drawn " + newCardDrawn.Name + " of " + newCardDrawn.suit + ". <br>Your current hand is: " + currentHand;
+    return "You have drawn " + newCardDrawn.Name + " of " + newCardDrawn.suit + ". <br>Your current hand is: " + currentHand + "<br>Please choose hit or stand.";
   } else if (input == "stand"){
     gameState = "output winner";
-    output = "Your hand is: " + currentHand + ". Computer is deciding to hit or stand....";
+    output = "Your hand is: " + currentHand + "<br>Computer hand is: " + computerUpdatedCards;
   } 
  return output;
 }
-
-//make computer choose hit or stand
-// var computerChooseCards = function(){
-
-// }
 
 //calculate the scores
 var outputWinner = function(){
@@ -124,12 +139,16 @@ var outputWinner = function(){
   }
 
   if (playerSumOfCards > computerSumOfCards){
+    gameState = "restart game"
     return "Player Score: " + playerSumOfCards + "<br> Computer score: " + computerSumOfCards + "<br> Player wins!";
   } else if (playerSumOfCards < computerSumOfCards){
+    gameState = "restart game"
     return "Player Score: " + playerSumOfCards + "<br> Computer score: " + computerSumOfCards + "<br> Computer wins!"
   } else if (playerSumOfCards > 21 || computerCards < 21){
+    gameState = "restart game"
     return "Player Score: " + playerSumOfCards + "<br> Computer score: " + computerSumOfCards + "<br> Computer wins!"
   } else{
+    gameState = "restart game"
     return "Its a tie!"
   }
 }
@@ -145,20 +164,18 @@ var main = function (input) {
   }
 
   if (gameState == "choose"){
-    var computerSumOfCards = 0;
-    for (i = 0; i < computerCards.length; i++){
-      for (j = 0; j < computerCards.length; j++){
-        computerSumOfCards += computerCards[j].points;
-      }
-      if (computerSumOfCards < 14){
-        computerCards.push(cardDeck.pop());
-      }
-    }
     return playerChooseCards(input);
   }
 
   if (gameState == "output winner"){
     return outputWinner();
   }
-  return myOutputValue;
+
+  if (gameState == "restart game"){
+    output = "";
+    gameState = "waiting input";
+    playerCards = [];
+    computerCards = [];
+    return "Game reset! Press submit to continue playing."
+  }
 };
