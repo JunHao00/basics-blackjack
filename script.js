@@ -24,16 +24,16 @@ var makeDeck = function(){
         cardName = "King";
       }
 
-      if (score == 1){
-        score = 1;
+      if (cardName == "Ace"){
+        score = 11;
       }
-      if (score == 11){
+      if (cardName == "Jack"){
         score = 10;
       }
-      if (score == 12){
+      if (cardName == "Queen"){
         score = 10;
       }
-      if (score == 13){
+      if (cardName == "King"){
         score = 10;
       }
 
@@ -69,28 +69,40 @@ var shuffledDeck = function(cardDeck){
   return cardDeck;
 }
 
-//show the first 2 cards
-var showInitialCards = function(){
-  cardDeck = shuffledDeck();
-  for (i = 0; i < 2; i++){
-    playerCards.push(cardDeck.pop());
-    computerCards.push(cardDeck.pop());
+var displayBothHands = function(){
+  var playerMessage = "Player Hand: <br>";
+  var computerHand = "Computer Hand: <br>";
+  for (i = 0; i < playerCards.length; i++){
+    playerMessage = playerMessage + "- " + playerCards[i].Name + " of " + playerCards[i].suit + "<br>";
   }
-  return "Player hand: " + playerCards[0].Name + " of " + playerCards[0].suit + " and " + playerCards[1].Name + " of " + playerCards[1].suit + "<br> Computer hand: " + computerCards[0].Name + " of " + computerCards[0].suit + " and " + computerCards[1].Name + " of " +computerCards[1].suit + "<br> Please choose to hit or stand. ";
+
+  for (i = 0; i < computerCards.length; i++){
+    computerHand = computerHand + "- " + computerCards[i].Name + " of " + computerCards[i].suit + "<br>";
+  }
+  return playerMessage + "<br>" + computerHand;
 }
 
-//show player hand after they had selected hit
-var showUpdatedCards = function(){
-  var arrayPlayerHand = [];
-  for (i = 0; i < playerCards.length; i++){
-    var output = playerCards[i].Name + " of " + playerCards[i].suit;
-    arrayPlayerHand.push(output);
-    console.log("player hand: ", arrayPlayerHand);
+var calculateScores = function(array){
+  var sumOfCards = 0;
+  var aceCounter = 0;
+  for (i = 0; i < array.length; i++){
+    var currentCard = array[i];
+    if (currentCard.Name == "Ace"){
+      sumOfCards += 11;
+      aceCounter +=1;
+    } else{
+      sumOfCards += currentCard.points;
+    }
+  } 
+
+  for (i = 0; i < aceCounter; i++){
+    if (sumOfCards > 21){
+      sumOfCards = sumOfCards - 10;
+    }
   }
-  gameState = "choose"
-  return arrayPlayerHand;
+  return sumOfCards;
 }
-//computer to choose hit or stand and displays array of cards
+
 var computerChooseCards = function(){
   var computerSumOfCards = 0;
   for (i = 0; i < computerCards.length; i++){
@@ -110,57 +122,83 @@ var computerChooseCards = function(){
   return computerHand;
 }
 
+var checkForBlackjack = function(array){
+  var cardOne = array[0];
+  var cardTwo = array[1];
+  var blackJack = false;
+  if((cardOne.Name == "Ace" && cardTwo.points >= 10) || (cardTwo.Name == "Ace" && cardOne.points >= 10)){
+    blackJack = true;
+  }
+  return blackJack;
+}
+
 //make player choose hit or stand
 var playerChooseCards = function(input){
-  var currentHand = showUpdatedCards();
-  var computerUpdatedCards = computerChooseCards();
-  var output =  "Please only choose hit or stand. " + "<br>Your hand is: " + currentHand;
+  var displayHands = displayBothHands();
   if (input == "hit"){
     newCardDrawn = cardDeck.pop();
     playerCards.push(newCardDrawn);
-    return "You have drawn " + newCardDrawn.Name + " of " + newCardDrawn.suit + ". <br>Your current hand is: " + currentHand + "<br>Please choose hit or stand.";
+    return "You have drawn " + newCardDrawn.Name + " of " + newCardDrawn.suit + "<br>"   + displayHands;
   } else if (input == "stand"){
     gameState = "output winner";
-    output = "Your hand is: " + currentHand + "<br>Computer hand is: " + computerUpdatedCards;
-  } 
- return output;
+    return "You Chose stand! Computer is deciding whether to hit.... press submit to reveal the winner!<br> " + displayHands ;
+  } else {
+    return "Please only choose hit or stand.<br>" + displayHands;
+  }
 }
 
-//calculate the scores
 var outputWinner = function(){
-  var playerSumOfCards = 0;
-  var computerSumOfCards = 0;
-  for (i = 0; i < playerCards.length; i++){
-    playerSumOfCards += playerCards[i].points;
+  var totalPlayerValue = calculateScores(playerCards);
+  var totalComputerValue = calculateScores(computerCards);
+  while (totalComputerValue < 14){
+    computerCards.push(cardDeck.pop());
+    totalComputerValue = calculateScores(computerCards);
   }
-
-  for (i = 0; i < computerCards.length; i++){
-    computerSumOfCards += computerCards[i].points;
-  }
-
-  if (playerSumOfCards > computerSumOfCards){
+  if(totalPlayerValue == totalComputerValue || totalComputerValue > 21 && totalPlayerValue > 21){
     gameState = "restart game"
-    return "Player Score: " + playerSumOfCards + "<br> Computer score: " + computerSumOfCards + "<br> Player wins!";
-  } else if (playerSumOfCards < computerSumOfCards){
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br>Its a tie!";
+  } else if(totalComputerValue > 21 && totalPlayerValue < 21){
     gameState = "restart game"
-    return "Player Score: " + playerSumOfCards + "<br> Computer score: " + computerSumOfCards + "<br> Computer wins!"
-  } else if (playerSumOfCards > 21 || computerCards < 21){
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br> Computer Busted! You win!";
+  } else if (totalPlayerValue > 21 && totalComputerValue < 21){
     gameState = "restart game"
-    return "Player Score: " + playerSumOfCards + "<br> Computer score: " + computerSumOfCards + "<br> Computer wins!"
-  } else{
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br> You Busted! Computer wins!";
+  } else if (totalPlayerValue < totalComputerValue){
     gameState = "restart game"
-    return "Its a tie!"
-  }
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br> Computer wins!";
+  } else if (totalPlayerValue > totalComputerValue){
+    gameState = "restart game"
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br> Player wins!";
+  } 
 }
-
-//need to add bust function
+//need to add bust/BJ function
 var main = function (input) {
   console.log(gameState);
   console.log("Player cards: ", playerCards);
   console.log("Computer cards: ", computerCards);
   if (gameState == "waiting input"){
-    gameState = "choose"
-    return showInitialCards();
+    cardDeck = shuffledDeck();
+    playerCards.push(cardDeck.pop());
+    playerCards.push(cardDeck.pop());
+    computerCards.push(cardDeck.pop()); 
+    computerCards.push(cardDeck.pop());
+    gameState = "blackjack";
+  }
+
+  if (gameState == "blackjack"){
+    if (checkForBlackjack(playerCards) == true && checkForBlackjack(computerCards) == true){
+      gameState = "restart game";
+      return "Both of you got BlackJack! Its a tie! " + displayBothHands();
+    }else if (checkForBlackjack(playerCards) == true && checkForBlackjack(computerCards) == false){
+      gameState = "restart game";
+      return "Congrats you got BlackJack! You Win! " + displayBothHands();
+    } else if (checkForBlackjack(playerCards) == false && checkForBlackjack(computerCards) == true){
+      gameState = "restart game";
+      return "Computer got BlackJack! You lose! " + displayBothHands();
+    } else {
+      gameState = "choose";
+      return displayBothHands() + "<br> No BlackJack, please choose hit or stand"
+    }
   }
 
   if (gameState == "choose"){
@@ -176,6 +214,6 @@ var main = function (input) {
     gameState = "waiting input";
     playerCards = [];
     computerCards = [];
-    return "Game reset! Press submit to continue playing."
+    return "Game reset! Press submit to continue playing.";
   }
 };
