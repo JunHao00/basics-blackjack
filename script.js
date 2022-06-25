@@ -1,7 +1,10 @@
 var cardDeck = [];
-var gameState = "waiting input";
+var gameState = "waiting bet";
 var playerCards = [];
-var computerCards = [];
+var dealerCards = [];
+var playerPoints = 100;
+var dealerPoints = 100;
+var bet = 0;
 
 //make a deck in order
 var makeDeck = function(){
@@ -50,6 +53,10 @@ var makeDeck = function(){
   return cardDeck;
 }
 
+var placeBet = function (input){
+
+}
+
 //generate numbers from 0 to deck size
 var getRandomIndex = function(input){
   var randoDecimal = Math.random() * input;
@@ -71,15 +78,28 @@ var shuffledDeck = function(cardDeck){
 
 var displayBothHands = function(){
   var playerMessage = "Player Hand: <br>";
-  var computerHand = "Computer Hand: <br>";
+  var dealerHand = "Dealer Hand: <br>";
   for (i = 0; i < playerCards.length; i++){
     playerMessage = playerMessage + "- " + playerCards[i].Name + " of " + playerCards[i].suit + "<br>";
   }
 
-  for (i = 0; i < computerCards.length; i++){
-    computerHand = computerHand + "- " + computerCards[i].Name + " of " + computerCards[i].suit + "<br>";
+  for (i = 0; i < dealerCards.length; i++){
+    dealerHand = dealerHand + "- " + dealerCards[i].Name + " of " + dealerCards[i].suit + "<br>";
   }
-  return playerMessage + "<br>" + computerHand;
+  return playerMessage + "<br>" + dealerHand;
+}
+
+var displayOneComputerHand = function(){
+  var playerMessage = "Player Hand: <br>";
+  var dealerHand = "Dealer Hand: <br>";
+  for (i = 0; i < playerCards.length; i++){
+    playerMessage = playerMessage + "- " + playerCards[i].Name + " of " + playerCards[i].suit + "<br>";
+  }
+
+  for (i = 0; i < 1; i++){
+    dealerHand = dealerHand + "- " + dealerCards[i].Name + " of " + dealerCards[i].suit + "<br>";
+  }
+  return playerMessage + "<br>" + dealerHand;
 }
 
 var calculateScores = function(array){
@@ -103,23 +123,23 @@ var calculateScores = function(array){
   return sumOfCards;
 }
 
-var computerChooseCards = function(){
-  var computerSumOfCards = 0;
-  for (i = 0; i < computerCards.length; i++){
-    for (j = 0; j < computerCards.length; j++){
-      computerSumOfCards += computerCards[j].points;
+var dealerChooseCards = function(){
+  var dealerSumOfCards = 0;
+  for (i = 0; i < dealerCards.length; i++){
+    for (j = 0; j < dealerCards.length; j++){
+      dealerSumOfCards += dealerCards[j].points;
     }
-    if (computerSumOfCards < 14){
-      computerCards.push(cardDeck.pop());
+    if (dealerSumOfCards < 14){
+      dealerCards.push(cardDeck.pop());
     }
   }
   
-  var computerHand = [];
-  for (i = 0; i < computerCards.length; i++){
-    var output = computerCards[i].Name + " of " + computerCards[i].suit;
-    computerHand.push(output);
+  var dealerHand = [];
+  for (i = 0; i < dealerCards.length; i++){
+    var output = dealerCards[i].Name + " of " + dealerCards[i].suit;
+    dealerHand.push(output);
   }
-  return computerHand;
+  return dealerHand;
 }
 
 var checkForBlackjack = function(array){
@@ -134,70 +154,96 @@ var checkForBlackjack = function(array){
 
 //make player choose hit or stand
 var playerChooseCards = function(input){
-  var displayHands = displayBothHands();
+  var displayOneHand = displayOneComputerHand();
   if (input == "hit"){
     newCardDrawn = cardDeck.pop();
     playerCards.push(newCardDrawn);
-    return "You have drawn " + newCardDrawn.Name + " of " + newCardDrawn.suit + "<br>"   + displayHands;
+    return "You have drawn " + newCardDrawn.Name + " of " + newCardDrawn.suit + "<br>"   + displayOneHand;
   } else if (input == "stand"){
     gameState = "output winner";
-    return "You Chose stand! Computer is deciding whether to hit.... press submit to reveal the winner!<br> " + displayHands ;
+    return "You Chose stand! dealer is deciding whether to hit.... press submit to reveal the winner!<br> " + displayOneHand ;
   } else {
-    return "Please only choose hit or stand.<br>" + displayHands;
+    return "Please only choose hit or stand.<br>" + displayOneHand;
   }
 }
 
 var outputWinner = function(){
   var totalPlayerValue = calculateScores(playerCards);
-  var totalComputerValue = calculateScores(computerCards);
-  while (totalComputerValue < 14){
-    computerCards.push(cardDeck.pop());
-    totalComputerValue = calculateScores(computerCards);
+  var totalDealerValue = calculateScores(dealerCards);
+  while ((totalDealerValue < totalPlayerValue && totalPlayerValue <= 21) || (totalDealerValue < 16)){
+    dealerCards.push(cardDeck.pop());
+    totalDealerValue = calculateScores(dealerCards);
   }
-  if(totalPlayerValue == totalComputerValue || totalComputerValue > 21 && totalPlayerValue > 21){
+  if(totalPlayerValue == totalDealerValue || totalDealerValue > 21 && totalPlayerValue > 21){
     gameState = "restart game"
-    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br>Its a tie!";
-  } else if(totalComputerValue > 21 && totalPlayerValue < 21){
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Dealer score: " + totalDealerValue + "<br>Its a tie!";
+  } else if(totalDealerValue > 21 && totalPlayerValue <= 21){
+    playerPoints = playerPoints + bet;
+    dealerPoints = dealerPoints - bet;
     gameState = "restart game"
-    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br> Computer Busted! You win!";
-  } else if (totalPlayerValue > 21 && totalComputerValue < 21){
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Dealer score: " + totalDealerValue + "<br> Dealer Busted! You win!";
+  } else if (totalPlayerValue > 21 && totalDealerValue <= 21){
     gameState = "restart game"
-    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br> You Busted! Computer wins!";
-  } else if (totalPlayerValue < totalComputerValue){
+    playerPoints = playerPoints - bet;
+    dealerPoints = dealerPoints + bet;
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Dealer score: " + totalDealerValue + "<br> You Busted! Dealer wins!";
+  } else if (totalPlayerValue < totalDealerValue){
     gameState = "restart game"
-    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br> Computer wins!";
-  } else if (totalPlayerValue > totalComputerValue){
+    playerPoints = playerPoints - bet;
+    dealerPoints = dealerPoints + bet;
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Dealer score: " + totalDealerValue + "<br> Dealer wins!";
+  } else if (totalPlayerValue > totalDealerValue){
     gameState = "restart game"
-    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Computer score: " + totalComputerValue + "<br> Player wins!";
+    playerPoints = playerPoints + bet;
+    dealerPoints = dealerPoints - bet;
+    return displayBothHands() + "<br>Player Score: " + totalPlayerValue + "<br> Dealer score: " + totalDealerValue + "<br> Player wins!";
   } 
 }
-//need to add bust/BJ function
+
 var main = function (input) {
   console.log(gameState);
   console.log("Player cards: ", playerCards);
-  console.log("Computer cards: ", computerCards);
+  console.log("Dealer cards: ", dealerCards);
+
+  if (gameState == "waiting bet"){
+    if (input > 20 || input > playerPoints){
+      output = "Player points: " + playerPoints + "<br>Dealer points: " + dealerPoints + "<br>Maximum bet is 20. Please ensure you have enough points to continue.";
+    } else if (input > 0){
+      bet = Number(bet + input);
+      gameState = "waiting input";
+      output = "Your bet is: " + bet + ". Good luck !";
+    } else{
+      output = "Welcome to BlackJack Basics! " + "<br>Player points: " + playerPoints + "<br>Dealer points: " + dealerPoints + "<br>Maximum bet is 20. Please only enter numbers";
+    }
+    return output;
+  }
+
   if (gameState == "waiting input"){
     cardDeck = shuffledDeck();
     playerCards.push(cardDeck.pop());
     playerCards.push(cardDeck.pop());
-    computerCards.push(cardDeck.pop()); 
-    computerCards.push(cardDeck.pop());
+    dealerCards.push(cardDeck.pop()); 
+    dealerCards.push(cardDeck.pop());
     gameState = "blackjack";
   }
 
   if (gameState == "blackjack"){
-    if (checkForBlackjack(playerCards) == true && checkForBlackjack(computerCards) == true){
+    if (checkForBlackjack(playerCards) == true && checkForBlackjack(dealerCards) == true){
       gameState = "restart game";
-      return "Both of you got BlackJack! Its a tie! " + displayBothHands();
-    }else if (checkForBlackjack(playerCards) == true && checkForBlackjack(computerCards) == false){
+      return "Both of you got BlackJack! Its a tie! <br>" + displayBothHands();
+    }else if (checkForBlackjack(playerCards) == true && checkForBlackjack(dealerCards) == false){
       gameState = "restart game";
-      return "Congrats you got BlackJack! You Win! " + displayBothHands();
-    } else if (checkForBlackjack(playerCards) == false && checkForBlackjack(computerCards) == true){
+      playerPoints + bet;
+      dealerPoints - bet;
+      return "Congrats you got BlackJack! You Win! <br>" + displayBothHands();
+    } else if (checkForBlackjack(playerCards) == false && checkForBlackjack(dealerCards) == true){
       gameState = "restart game";
-      return "Computer got BlackJack! You lose! " + displayBothHands();
+      playerPoints - bet;
+      dealerPoints + bet;
+      return "Dealer got BlackJack! You lose! <br>" + displayBothHands();
     } else {
       gameState = "choose";
-      return displayBothHands() + "<br> No BlackJack, please choose hit or stand"
+      return displayOneComputerHand() + "<br> No BlackJack, please choose hit or stand"
     }
   }
 
@@ -211,9 +257,10 @@ var main = function (input) {
 
   if (gameState == "restart game"){
     output = "";
-    gameState = "waiting input";
+    gameState = "waiting bet";
     playerCards = [];
-    computerCards = [];
-    return "Game reset! Press submit to continue playing.";
+    dealerCards = [];
+    bet = 0;
+    return "Player Points: " + playerPoints + " <br>Dealer points: " + dealerPoints + "<br>Press submit to deal the next hand!";
   }
 };
