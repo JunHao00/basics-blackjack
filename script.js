@@ -206,14 +206,14 @@ var main = function (input) {
   console.log("Dealer cards: ", dealerCards);
 
   if (gameState == "waiting bet"){
-    if (input > 20 || input > playerPoints){
-      output = "Player points: " + playerPoints + "<br>Dealer points: " + dealerPoints + "<br>Maximum bet is 20. Please ensure you have enough points to continue.";
+    if (input >51 || input > playerPoints){
+      output = "Player points: " + playerPoints + "<br>Dealer points: " + dealerPoints + "<br>Maximum bet is 50. Please ensure you have enough points to continue.";
     } else if (input > 0){
       bet = Number(bet + input);
       gameState = "waiting input";
       output = "Your bet is: " + bet + ". Good luck !";
     } else{
-      output = "Welcome to BlackJack Basics! " + "<br>Player points: " + playerPoints + "<br>Dealer points: " + dealerPoints + "<br>Maximum bet is 20. Please only enter numbers";
+      output = "Welcome to BlackJack Basics! " + "<br>Player points: " + playerPoints + "<br>Dealer points: " + dealerPoints + "<br>Maximum bet is 50. Please only enter numbers";
     }
     return output;
   }
@@ -256,11 +256,15 @@ var main = function (input) {
   }
 
   if (gameState == "restart game"){
-    output = "";
-    gameState = "waiting bet";
-    playerCards = [];
-    dealerCards = [];
-    bet = 0;
-    return "Player Points: " + playerPoints + " <br>Dealer points: " + dealerPoints + "<br>Press submit to deal the next hand!";
+    if (playerPoints > 0){
+      output = "";
+      gameState = "waiting bet";
+      playerCards = [];
+      dealerCards = [];
+      bet = 0;
+      return "Player Points: " + playerPoints + " <br>Dealer points: " + dealerPoints + "<br>Press submit to deal the next hand!";
+    } else {
+      return "You lost all your points, refresh the browser to restart the point system.";
+    }
   }
 };
